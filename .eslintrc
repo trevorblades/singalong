@@ -1,0 +1,4 @@
+extends: knoword/react
+globals:
+  APP_TITLE: true
+  PUBLIC_PATH: true
