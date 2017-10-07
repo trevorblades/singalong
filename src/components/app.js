@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import glamorous from 'glamorous';
+import {triangle} from 'polished';
 
 import PlayBar from './play-bar';
 import carryOn from '../audio/carry-on.mp3';
@@ -7,6 +8,24 @@ import carryOn from '../audio/carry-on.mp3';
 const Player = glamorous.div({
   userSelect: 'none'
 });
+
+const PlayBarWrapper = glamorous.div({
+  position: 'relative'
+});
+
+const Marker = glamorous.div({
+  ...triangle({
+    pointingDirection: 'top',
+    width: 8,
+    height: 8,
+    foregroundColor: 'black'
+  }),
+  position: 'absolute',
+  transform: 'translateX(-50%)'
+});
+
+const hot2 =
+  '{"25.387413":"Besides","25.51412":"the","25.650221":"fact","25.786238":"a","26.098068":"n***a","26.346295":"never","26.491243":"been","26.74616":"as","27.081993":"swank","27.314045":"as","27.443488":"me","27.954447":"I","28.114071":"like","28.323824":"that","28.693904":"Until","28.818163":"I","28.977861":"shine","29.153994":"I","29.361932":"sit","29.570212":"patiently,","30.578036":"so","30.746084":"light","31.138373":"that","31.312367":"I’m","31.432432":"folding","31.625675":"back","31.760503":"scroll","32.093051":"a","32.291784":"pack","32.41792":"and","32.728264":"roll","33.032759":"a","33.323799":"fatty","33.459245":"smokes","33.600589":"heavy","34.136714":"Not","34.353108":"even","34.496216":"over","34.72824":"mad","35.064524":"I’m","35.337018":"thinking","35.464118":"what","35.680497":"they","35.817911":"probably","36.032609":"should","36.32835":"have","36.553082":"did","36.696505":"before","36.909098":"him"}';
 
 class App extends Component {
   constructor(props) {
@@ -23,15 +42,16 @@ class App extends Component {
     this.updateTime = this.updateTime.bind(this);
 
     const bars =
-      'Besides the fact a n***a never been as swank as me I like that Until I shine I sit patiently, so light that';
+      'I’m on my girls and soaring foreign under them heels It ain’t about the Ralph though tell your horse chill';
     this.state = {
       currentTime: 0,
       dragging: false,
       duration: 0,
       loaded: false,
       playing: false,
-      markedWords: {},
-      unmarkedWords: bars.split(' ')
+      markedWords: JSON.parse(hot2),
+      unmarkedWords: bars.split(' '),
+      selectedWord: null
     };
   }
 
@@ -49,6 +69,7 @@ class App extends Component {
     // TODO: replace with keycode-js
     switch (event.keyCode) {
       case 32:
+        event.preventDefault();
         this.playPause();
         break;
       case 190:
@@ -87,6 +108,7 @@ class App extends Component {
       Math.round(this.audio.duration * percent * factor) / factor;
 
     // TODO: investigate desyncs/inconsistent time setting
+    // spamming this setter seems to slow down FPS, but syncs up the track better
     this.audio.currentTime = nextTime;
     this.setState({
       currentTime: nextTime,
@@ -122,6 +144,16 @@ class App extends Component {
     }));
   }
 
+  selectWord(mark) {
+    const markTime = parseFloat(mark);
+    console.log(markTime);
+    this.audio.currentTime = markTime;
+    this.setState({
+      currentTime: markTime,
+      selectedWord: markTime
+    });
+  }
+
   renderPlayer() {
     if (!this.state.loaded) {
       return 'Loading...';
@@ -144,23 +176,33 @@ class App extends Component {
       <Player>
         <h2>{word || '--'}</h2>
         <a onClick={this.playPause}>{this.state.playing ? 'Pause' : 'Play'}</a>
-        <div>
+        <PlayBarWrapper>
           <PlayBar
             onDrag={this.onPlayBarDrag}
             onDragEnd={this.onPlayBarDragEnd}
             onDragStart={this.onPlayBarDragStart}
             percentPlayed={this.state.currentTime / this.state.duration}
           />
-        </div>
+          {this.state.selectedWord !== null && (
+            <Marker
+              style={{
+                left: `${this.state.selectedWord / this.state.duration * 100}%`
+              }}
+            />
+          )}
+        </PlayBarWrapper>
         <div>{this.state.currentTime}</div>
         <div>{this.state.duration}</div>
         <h3>Marked</h3>
-        <ul>
-          {marks.map(mark => (
-            <li key={mark}>{`${mark}: ${this.state.markedWords[mark]}`}</li>
-          ))}
-        </ul>
-
+        <p style={{width: 420, lineHeight: 1.5}}>
+          {marks.map(mark => [
+            <a onClick={() => this.selectWord(mark)}>
+              {this.state.markedWords[mark]}
+            </a>,
+            ' '
+          ])}
+        </p>
+        {/* <textarea readOnly value={JSON.stringify(this.state.markedWords)} /> */}
         <h3>Unmarked</h3>
         <ul>
           {this.state.unmarkedWords.map((unmarkedWord, index) => (
