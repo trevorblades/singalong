@@ -85,6 +85,8 @@ class App extends Component {
     const factor = 10 ** precision;
     const nextTime =
       Math.round(this.audio.duration * percent * factor) / factor;
+
+    // TODO: investigate desyncs/inconsistent time setting
     this.audio.currentTime = nextTime;
     this.setState({
       currentTime: nextTime,
