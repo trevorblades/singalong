@@ -1,9 +1,15 @@
 {
   "presets": [
-    "env",
+    [
+      "env",
+      {
+        "modules": false
+      }
+    ],
     "react"
   ],
   "plugins": [
+    "glamorous-displayname",
     "react-hot-loader/babel",
     "transform-object-rest-spread"
   ]
