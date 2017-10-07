@@ -1,7 +1,12 @@
 import React, {Component} from 'react';
+import glamorous from 'glamorous';
 
 import PlayBar from './play-bar';
 import carryOn from '../audio/carry-on.mp3';
+
+const Player = glamorous.div({
+  userSelect: 'none'
+});
 
 class App extends Component {
   constructor(props) {
@@ -11,7 +16,9 @@ class App extends Component {
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onPause = this.onPause.bind(this);
     this.onPlaying = this.onPlaying.bind(this);
-    this.onPlayBarClick = this.onPlayBarClick.bind(this);
+    this.onPlayBarDragStart = this.onPlayBarDragStart.bind(this);
+    this.onPlayBarDrag = this.onPlayBarDrag.bind(this);
+    this.onPlayBarDragEnd = this.onPlayBarDragEnd.bind(this);
     this.playPause = this.playPause.bind(this);
     this.updateTime = this.updateTime.bind(this);
 
@@ -19,6 +26,7 @@ class App extends Component {
       'Besides the fact a n***a never been as swank as me I like that Until I shine I sit patiently, so light that';
     this.state = {
       currentTime: 0,
+      dragging: false,
       duration: 0,
       loaded: false,
       playing: false,
@@ -60,14 +68,28 @@ class App extends Component {
     requestAnimationFrame(this.updateTime);
   }
 
-  onPlayBarClick(percent) {
+  onPlayBarDragStart(percent) {
+    this.setState({
+      currentTime: this.audio.duration * percent,
+      dragging: true
+    });
+  }
+
+  onPlayBarDrag(percent) {
+    this.setState({currentTime: this.audio.duration * percent});
+  }
+
+  onPlayBarDragEnd(percent) {
     // TODO: replace with lodash/round
     const precision = 6; // decimal places to round the number to
     const factor = 10 ** precision;
     const nextTime =
       Math.round(this.audio.duration * percent * factor) / factor;
     this.audio.currentTime = nextTime;
-    this.setState({currentTime: nextTime});
+    this.setState({
+      currentTime: nextTime,
+      dragging: false
+    });
   }
 
   playPause() {
@@ -80,9 +102,11 @@ class App extends Component {
   }
 
   updateTime() {
-    this.setState({currentTime: this.audio.currentTime});
-    if (!this.audio.paused) {
-      requestAnimationFrame(this.updateTime);
+    if (!this.state.dragging) {
+      this.setState({currentTime: this.audio.currentTime});
+      if (!this.audio.paused) {
+        requestAnimationFrame(this.updateTime);
+      }
     }
   }
 
@@ -115,12 +139,14 @@ class App extends Component {
     }
 
     return (
-      <div>
+      <Player>
         <h2>{word || '--'}</h2>
         <a onClick={this.playPause}>{this.state.playing ? 'Pause' : 'Play'}</a>
         <div>
           <PlayBar
-            onClick={this.onPlayBarClick}
+            onDrag={this.onPlayBarDrag}
+            onDragEnd={this.onPlayBarDragEnd}
+            onDragStart={this.onPlayBarDragStart}
             percentPlayed={this.state.currentTime / this.state.duration}
           />
         </div>
@@ -139,7 +165,7 @@ class App extends Component {
             <li key={index.toString()}>{unmarkedWord}</li>
           ))}
         </ul>
-      </div>
+      </Player>
     );
   }
 

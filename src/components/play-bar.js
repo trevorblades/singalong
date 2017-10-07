@@ -23,18 +23,43 @@ const Bar = glamorous.div({
 class PlayBar extends Component {
   constructor(props) {
     super(props);
-    this.onClick = this.onClick.bind(this);
+
+    this.onMouseDown = this.onMouseDown.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
+    this.onMouseUp = this.onMouseUp.bind(this);
   }
 
-  onClick(event) {
-    const percent =
-      (event.clientX - event.target.offsetLeft) / event.target.offsetWidth;
-    this.props.onClick(percent);
+  onMouseDown(event) {
+    const percent = this.getPercent(event.clientX);
+    this.props.onDragStart(percent);
+    window.addEventListener('mousemove', this.onMouseMove);
+    window.addEventListener('mouseup', this.onMouseUp);
+  }
+
+  onMouseMove(event) {
+    const percent = this.getPercent(event.clientX);
+    this.props.onDrag(percent);
+  }
+
+  onMouseUp(event) {
+    const percent = this.getPercent(event.clientX);
+    this.props.onDragEnd(percent);
+    window.removeEventListener('mousemove', this.onMouseMove);
+    window.removeEventListener('mouseup', this.onMouseUp);
+  }
+
+  getPercent(clientX) {
+    return (clientX - this.wrapper.offsetLeft) / this.wrapper.offsetWidth;
   }
 
   render() {
     return (
-      <Wrapper onClick={this.onClick}>
+      <Wrapper
+        innerRef={node => {
+          this.wrapper = node;
+        }}
+        onMouseDown={this.onMouseDown}
+      >
         <InnerWrapper>
           <Bar style={{transform: `scaleX(${this.props.percentPlayed})`}} />
         </InnerWrapper>
@@ -44,7 +69,9 @@ class PlayBar extends Component {
 }
 
 PlayBar.propTypes = {
-  onClick: PropTypes.func.isRequired,
+  onDrag: PropTypes.func.isRequired,
+  onDragEnd: PropTypes.func.isRequired,
+  onDragStart: PropTypes.func.isRequired,
   percentPlayed: PropTypes.number.isRequired
 };
 
