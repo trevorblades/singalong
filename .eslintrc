@@ -2,3 +2,5 @@ extends: knoword/react
 globals:
   APP_TITLE: true
   PUBLIC_PATH: true
+rules:
+  jsx-a11y/media-has-caption: 0
