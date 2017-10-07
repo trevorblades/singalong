@@ -146,7 +146,6 @@ class App extends Component {
 
   selectWord(mark) {
     const markTime = parseFloat(mark);
-    console.log(markTime);
     this.audio.currentTime = markTime;
     this.setState({
       currentTime: markTime,
@@ -193,7 +192,6 @@ class App extends Component {
         </PlayBarWrapper>
         <div>{this.state.currentTime}</div>
         <div>{this.state.duration}</div>
-        <h3>Marked</h3>
         <p style={{width: 420, lineHeight: 1.5}}>
           {marks.map(mark => [
             <a onClick={() => this.selectWord(mark)}>
