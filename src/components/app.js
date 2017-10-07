@@ -3,6 +3,17 @@ import React, {Component} from 'react';
 import PlayBar from './play-bar';
 import carryOn from '../audio/carry-on.mp3';
 
+const words = {
+  0: 'yo',
+  2: 'hi',
+  2.552: 'hello',
+  6.3333: 'statik'
+};
+
+const wordKeys = Object.keys(words)
+  .map(Number)
+  .sort();
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -65,6 +76,36 @@ class App extends Component {
     }
   }
 
+  renderPlayer() {
+    if (!this.state.loaded) {
+      return 'Loading...';
+    }
+
+    let key = wordKeys[0];
+    for (let i = 0; i < wordKeys.length; i++) {
+      const wordKey = wordKeys[i];
+      if (this.state.currentTime < wordKey) {
+        break;
+      }
+      key = wordKey;
+    }
+
+    return (
+      <div>
+        <div>{words[key]}</div>
+        <a onClick={this.playPause}>{this.state.playing ? 'Pause' : 'Play'}</a>
+        <div>
+          <PlayBar
+            onClick={this.onPlayBarClick}
+            percentPlayed={this.state.currentTime / this.state.duration}
+          />
+        </div>
+        <div>{this.state.currentTime}</div>
+        <div>{this.state.duration}</div>
+      </div>
+    );
+  }
+
   render() {
     return (
       <div>
@@ -74,21 +115,7 @@ class App extends Component {
           onPlaying={this.onPlaying}
           src={carryOn}
         />
-        {this.state.loaded && (
-          <div>
-            <a onClick={this.playPause}>
-              {this.state.playing ? 'Pause' : 'Play'}
-            </a>
-            <div>
-              <PlayBar
-                onClick={this.onPlayBarClick}
-                percentPlayed={this.state.currentTime / this.state.duration}
-              />
-            </div>
-            <div>{this.state.currentTime}</div>
-            <div>{this.state.duration}</div>
-          </div>
-        )}
+        {this.renderPlayer()}
       </div>
     );
   }
