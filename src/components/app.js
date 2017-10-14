@@ -194,7 +194,7 @@ class App extends Component {
         <div>{this.state.duration}</div>
         <p style={{width: 420, lineHeight: 1.5}}>
           {marks.map(mark => [
-            <a onClick={() => this.selectWord(mark)}>
+            <a key={mark} onClick={() => this.selectWord(mark)}>
               {this.state.markedWords[mark]}
             </a>,
             ' '
