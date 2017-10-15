@@ -5,7 +5,7 @@ const DashboardPlugin = require('webpack-dashboard/plugin');
 const merge = require('webpack-merge');
 
 const PORT = 3000;
-const APP_TITLE = 'Singalong';
+const APP_TITLE = 'Rapalong';
 
 const branchName = process.env.CIRCLE_BRANCH;
 const PRODUCTION_BRANCH = 'master';

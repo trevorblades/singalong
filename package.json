@@ -12,6 +12,7 @@
     "build": "NODE_ENV=production webpack -p"
   },
   "dependencies": {
+    "clock-time": "^1.1.0",
     "glamor": "^2.20.40",
     "glamorous": "^4.9.7",
     "howler": "^2.0.5",
@@ -20,7 +21,8 @@
     "prop-types": "^15.6.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
-    "react-hot-loader": "^3.0.0-beta.7"
+    "react-hot-loader": "^3.0.0-beta.7",
+    "react-router-dom": "^4.2.2"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

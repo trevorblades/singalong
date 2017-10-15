@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {AppContainer} from 'react-hot-loader';
 
-import App from './components/app';
+import App from './app';
 import styles from './styles';
 
 const render = Component => {
@@ -17,7 +17,7 @@ const render = Component => {
 
 render(App);
 if (module.hot) {
-  module.hot.accept('./components/app', () => {
+  module.hot.accept('./app', () => {
     render(App);
   });
 }

@@ -49,7 +49,21 @@ class PlayBar extends Component {
   }
 
   getPercent(clientX) {
-    return (clientX - this.wrapper.offsetLeft) / this.wrapper.offsetWidth;
+    let offsetLeft = 0;
+    let node = this.wrapper;
+    while (node) {
+      offsetLeft += node.offsetLeft;
+      node = node.offsetParent;
+    }
+
+    const percent = (clientX - offsetLeft) / this.wrapper.offsetWidth;
+    if (percent > 1) {
+      return 1;
+    } else if (percent < 0) {
+      return 0;
+    }
+
+    return percent;
   }
 
   render() {
