@@ -48,33 +48,34 @@ const config = {
 
 if (process.env.NODE_ENV === 'production') {
   module.exports = config;
-} else {
-  module.exports = merge(
-    {
-      entry: {
-        main: [
-          'react-hot-loader/patch',
-          `webpack-dev-server/client?http://localhost:${PORT}`,
-          'webpack/hot/only-dev-server'
-        ]
-      }
-    },
-    config,
-    {
-      output: {
-        filename: '[name].js'
-      },
-      devtool: 'inline-source-map',
-      devServer: {
-        hot: true,
-        port: PORT,
-        historyApiFallback: true
-      },
-      plugins: [
-        new DashboardPlugin(),
-        new webpack.HotModuleReplacementPlugin(),
-        new webpack.NamedModulesPlugin()
+  return;
+}
+
+module.exports = merge(
+  {
+    entry: {
+      main: [
+        'react-hot-loader/patch',
+        `webpack-dev-server/client?http://localhost:${PORT}`,
+        'webpack/hot/only-dev-server'
       ]
     }
-  );
-}
+  },
+  config,
+  {
+    output: {
+      filename: '[name].js'
+    },
+    devtool: 'inline-source-map',
+    devServer: {
+      hot: true,
+      port: PORT,
+      historyApiFallback: true
+    },
+    plugins: [
+      new DashboardPlugin(),
+      new webpack.HotModuleReplacementPlugin(),
+      new webpack.NamedModulesPlugin()
+    ]
+  }
+);

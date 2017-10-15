@@ -16,7 +16,6 @@
     "glamorous": "^4.9.7",
     "howler": "^2.0.5",
     "keycode-js": "0.0.4",
-    "lodash": "^4.17.4",
     "polished": "^1.7.0",
     "prop-types": "^15.6.0",
     "react": "^16.0.0",

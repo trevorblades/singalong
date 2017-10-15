@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import glamorous from 'glamorous';
-import round from 'lodash/round';
 import {KEY_PERIOD, KEY_SPACE} from 'keycode-js';
 import {Howl} from 'howler';
 import {triangle} from 'polished';
@@ -110,12 +109,15 @@ class App extends Component {
   }
 
   onPlayBarDragEnd(percent) {
-    const nextTime = round(this.audio.duration() * percent, 6);
-    this.audio.seek(nextTime);
-    this.setState({
-      currentTime: nextTime,
-      dragging: false
-    });
+    const currentTime = this.audio.duration() * percent;
+    this.audio.seek(currentTime);
+    this.setState(
+      {
+        currentTime,
+        dragging: false
+      },
+      this.updateTime
+    );
   }
 
   playPause() {
@@ -147,11 +149,11 @@ class App extends Component {
   }
 
   selectWord(mark) {
-    const markTime = parseFloat(mark);
-    this.audio.seek(markTime);
+    const currentTime = parseFloat(mark);
+    this.audio.seek(currentTime);
     this.setState({
-      currentTime: markTime,
-      selectedWord: markTime
+      currentTime,
+      selectedWord: currentTime
     });
   }
 
