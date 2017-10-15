@@ -1,5 +1,8 @@
 import React, {Component} from 'react';
 import glamorous from 'glamorous';
+import round from 'lodash/round';
+import {KEY_PERIOD, KEY_SPACE} from 'keycode-js';
+import {Howl} from 'howler';
 import {triangle} from 'polished';
 
 import PlayBar from './play-bar';
@@ -31,10 +34,10 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    this.onLoadedData = this.onLoadedData.bind(this);
     this.onKeyDown = this.onKeyDown.bind(this);
+    this.onLoad = this.onLoad.bind(this);
     this.onPause = this.onPause.bind(this);
-    this.onPlaying = this.onPlaying.bind(this);
+    this.onPlay = this.onPlay.bind(this);
     this.onPlayBarDragStart = this.onPlayBarDragStart.bind(this);
     this.onPlayBarDrag = this.onPlayBarDrag.bind(this);
     this.onPlayBarDragEnd = this.onPlayBarDragEnd.bind(this);
@@ -55,24 +58,22 @@ class App extends Component {
     };
   }
 
-  onLoadedData(event) {
-    this.audio = event.target;
-    this.setState({
-      loaded: true,
-      duration: event.target.duration
+  componentWillMount() {
+    this.audio = new Howl({
+      src: [carryOn],
+      onload: this.onLoad,
+      onpause: this.onPause,
+      onplay: this.onPlay
     });
-
-    window.addEventListener('keydown', this.onKeyDown);
   }
 
   onKeyDown(event) {
-    // TODO: replace with keycode-js
     switch (event.keyCode) {
-      case 32:
+      case KEY_SPACE:
         event.preventDefault();
         this.playPause();
         break;
-      case 190:
+      case KEY_PERIOD:
         this.markWord();
         break;
       default:
@@ -80,36 +81,37 @@ class App extends Component {
     }
   }
 
+  onLoad() {
+    window.addEventListener('keydown', this.onKeyDown);
+    this.setState({
+      loaded: true,
+      duration: this.audio.duration()
+    });
+  }
+
   onPause() {
     this.setState({playing: false});
   }
 
-  onPlaying() {
+  onPlay() {
     this.setState({playing: true});
     requestAnimationFrame(this.updateTime);
   }
 
   onPlayBarDragStart(percent) {
     this.setState({
-      currentTime: this.audio.duration * percent,
+      currentTime: this.audio.duration() * percent,
       dragging: true
     });
   }
 
   onPlayBarDrag(percent) {
-    this.setState({currentTime: this.audio.duration * percent});
+    this.setState({currentTime: this.audio.duration() * percent});
   }
 
   onPlayBarDragEnd(percent) {
-    // TODO: replace with lodash/round
-    const precision = 6; // decimal places to round the number to
-    const factor = 10 ** precision;
-    const nextTime =
-      Math.round(this.audio.duration * percent * factor) / factor;
-
-    // TODO: investigate desyncs/inconsistent time setting
-    // spamming this setter seems to slow down FPS, but syncs up the track better
-    this.audio.currentTime = nextTime;
+    const nextTime = round(this.audio.duration() * percent, 6);
+    this.audio.seek(nextTime);
     this.setState({
       currentTime: nextTime,
       dragging: false
@@ -117,7 +119,7 @@ class App extends Component {
   }
 
   playPause() {
-    if (!this.audio.paused) {
+    if (this.audio.playing()) {
       this.audio.pause();
       return;
     }
@@ -127,8 +129,8 @@ class App extends Component {
 
   updateTime() {
     if (!this.state.dragging) {
-      this.setState({currentTime: this.audio.currentTime});
-      if (!this.audio.paused) {
+      this.setState({currentTime: this.audio.seek()});
+      if (this.audio.playing()) {
         requestAnimationFrame(this.updateTime);
       }
     }
@@ -138,7 +140,7 @@ class App extends Component {
     this.setState(prevState => ({
       markedWords: {
         ...prevState.markedWords,
-        [this.audio.currentTime]: prevState.unmarkedWords[0]
+        [this.audio.seek()]: prevState.unmarkedWords[0]
       },
       unmarkedWords: prevState.unmarkedWords.slice(1)
     }));
@@ -146,14 +148,14 @@ class App extends Component {
 
   selectWord(mark) {
     const markTime = parseFloat(mark);
-    this.audio.currentTime = markTime;
+    this.audio.seek(markTime);
     this.setState({
       currentTime: markTime,
       selectedWord: markTime
     });
   }
 
-  renderPlayer() {
+  render() {
     if (!this.state.loaded) {
       return 'Loading...';
     }
@@ -208,20 +210,6 @@ class App extends Component {
           ))}
         </ul>
       </Player>
-    );
-  }
-
-  render() {
-    return (
-      <div>
-        <audio
-          onLoadedData={this.onLoadedData}
-          onPause={this.onPause}
-          onPlaying={this.onPlaying}
-          src={carryOn}
-        />
-        {this.renderPlayer()}
-      </div>
     );
   }
 }
