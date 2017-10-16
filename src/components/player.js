@@ -8,6 +8,7 @@ import {size, triangle} from 'polished';
 
 import PlayBar from './play-bar';
 import {PADDING_SMALL, PADDING_SMALLER} from '../variables';
+import {goodCharactersPattern} from '../pages/format';
 
 const Wrapper = glamorous.div({
   userSelect: 'none'
@@ -50,7 +51,21 @@ const Marker = glamorous.div({
 
 const Verse = glamorous.div({});
 const Line = glamorous.div({});
-const Word = glamorous.span({});
+
+function getWordColorFromProps(props) {
+  if (props.active) {
+    return 'red';
+  } else if (props.tagged) {
+    return 'black';
+  }
+  return 'gray';
+}
+
+const Word = glamorous.span(props => ({
+  color: getWordColorFromProps(props)
+}));
+
+const specialCharactersPattern = /[,)]/;
 
 class Player extends Component {
   constructor(props) {
@@ -65,12 +80,14 @@ class Player extends Component {
     this.onPlayBarDragEnd = this.onPlayBarDragEnd.bind(this);
     this.playPause = this.playPause.bind(this);
     this.updateTime = this.updateTime.bind(this);
+    this.toggleRate = this.toggleRate.bind(this);
 
     this.state = {
       currentTime: 0,
       dragging: false,
       duration: 0,
       loaded: false,
+      lyrics: props.lyrics,
       playing: false,
       selectedWord: null
     };
@@ -158,7 +175,37 @@ class Player extends Component {
   }
 
   tagWord() {
-    console.log(this.audio.seek());
+    for (
+      let verseIndex = 0;
+      verseIndex < this.state.lyrics.length;
+      verseIndex++
+    ) {
+      const verse = this.state.lyrics[verseIndex];
+      for (let lineIndex = 0; lineIndex < verse.length; lineIndex++) {
+        const line = verse[lineIndex];
+        for (let wordIndex = 0; wordIndex < line.length; wordIndex++) {
+          const word = line[wordIndex];
+          if (!Array.isArray(word) && goodCharactersPattern.test(word)) {
+            this.setState(prevState => ({
+              lyrics: [
+                ...prevState.lyrics.slice(0, verseIndex),
+                [
+                  ...verse.slice(0, lineIndex),
+                  [
+                    ...line.slice(0, wordIndex),
+                    [word, this.audio.seek()],
+                    ...line.slice(wordIndex + 1)
+                  ],
+                  ...verse.slice(lineIndex + 1)
+                ],
+                ...prevState.lyrics.slice(verseIndex + 1)
+              ]
+            }));
+            return;
+          }
+        }
+      }
+    }
   }
 
   selectWord(time) {
@@ -167,6 +214,11 @@ class Player extends Component {
       currentTime: time,
       selectedWord: time
     });
+  }
+
+  toggleRate() {
+    const currentRate = this.audio.rate();
+    this.audio.rate(currentRate === 1 ? 0.5 : 1);
   }
 
   renderPlayControls() {
@@ -198,13 +250,34 @@ class Player extends Component {
 
   renderLine(line) {
     return line.map((word, index) => {
+      let onClick;
+      let active = false;
+      let text = word;
       const isTagged = Array.isArray(word);
+      if (isTagged) {
+        const time = word[1];
+        text = word[0];
+        active = this.state.currentTime >= time;
+        onClick = this.selectWord.bind(this, time);
+      }
+
+      let needsSpace =
+        goodCharactersPattern.test(text) || specialCharactersPattern.test(text);
+      const nextWord = line[index + 1];
+      if (nextWord) {
+        const nextText = Array.isArray(nextWord) ? nextWord[0] : nextWord;
+        needsSpace = !specialCharactersPattern.test(nextText);
+      }
+
       return (
         <Word
+          active={active}
           key={index.toString()}
-          onClick={isTagged ? () => this.selectWord(word[1]) : null}
+          onClick={onClick}
+          tagged={isTagged}
         >
-          {isTagged ? word[0] : word}
+          {text}
+          {needsSpace && ' '}
         </Word>
       );
     });
@@ -219,7 +292,7 @@ class Player extends Component {
   renderLyrics() {
     return (
       <div>
-        {this.props.lyrics.map((verse, index) => (
+        {this.state.lyrics.map((verse, index) => (
           <Verse key={index.toString()}>{this.renderVerse(verse)}</Verse>
         ))}
       </div>
@@ -233,6 +306,7 @@ class Player extends Component {
 
     return (
       <Wrapper>
+        <a onClick={this.toggleRate}>Slow it down</a>
         {this.renderPlayControls()}
         {this.renderLyrics()}
       </Wrapper>

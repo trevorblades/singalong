@@ -27,8 +27,9 @@ function focusAndSelect(event) {
 }
 
 const goodCharacters = /\w-'‘’*/;
+export const goodCharactersPattern = new RegExp(`[${goodCharacters.source}]+`);
 const wordsPattern = new RegExp(
-  `[${goodCharacters.source}]+(?=(\\W|$))|[^${goodCharacters}\\s]`,
+  `${goodCharactersPattern.source}(?=(\\W|$))|[^${goodCharacters}\\s]`,
   'g'
 );
 
