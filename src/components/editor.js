@@ -20,6 +20,11 @@ const Wrapper = glamorous.div({
   left: 0
 });
 
+const StyledPlayer = glamorous(Player)({
+  width: '50%',
+  height: '100%'
+});
+
 class Editor extends Component {
   constructor(props) {
     super(props);
@@ -86,12 +91,12 @@ class Editor extends Component {
   render() {
     return (
       <Wrapper>
-        <Player
-          lyrics={this.state.lyrics}
-          onLoad={this.onPlayerLoad}
-          ref={node => {
+        <StyledPlayer
+          innerRef={node => {
             this.player = node;
           }}
+          lyrics={this.state.lyrics}
+          onLoad={this.onPlayerLoad}
           src={this.props.src}
         />
         <FormattedTextArea readOnly value={this.state.formatted} />

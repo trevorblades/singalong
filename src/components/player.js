@@ -12,13 +12,19 @@ import {PADDING_SMALL, PADDING_SMALLER} from '../variables';
 import {goodCharactersPattern} from '../pages/format';
 
 const Wrapper = glamorous.div({
-  userSelect: 'none'
+  display: 'flex',
+  flexDirection: 'column',
+  userSelect: 'none',
+  overflow: 'hidden'
 });
 
 const PlayControls = glamorous.div({
   display: 'flex',
   alignItems: 'center',
-  position: 'relative'
+  flexShrink: 0,
+  width: '100%',
+  padding: PADDING_SMALL,
+  backgroundColor: 'lightgray'
 });
 
 const Time = glamorous.div({
@@ -48,6 +54,11 @@ const Marker = glamorous.div({
   }),
   position: 'absolute',
   transform: 'translateX(-50%)'
+});
+
+const Lyrics = glamorous.div({
+  flexGrow: 1,
+  overflow: 'auto'
 });
 
 const Verse = glamorous.div({
@@ -289,11 +300,12 @@ class Player extends Component {
 
   renderLyrics() {
     return (
-      <div>
+      <Lyrics>
+        <a onClick={this.toggleRate}>Slow it down</a>
         {this.props.lyrics.map((verse, index) => (
           <Verse key={index.toString()}>{this.renderVerse(verse)}</Verse>
         ))}
-      </div>
+      </Lyrics>
     );
   }
 
@@ -303,16 +315,16 @@ class Player extends Component {
     }
 
     return (
-      <Wrapper>
-        <a onClick={this.toggleRate}>Slow it down</a>
-        {this.renderPlayControls()}
+      <Wrapper className={this.props.className}>
         {this.renderLyrics()}
+        {this.renderPlayControls()}
       </Wrapper>
     );
   }
 }
 
 Player.propTypes = {
+  className: PropTypes.string.isRequired,
   lyrics: lyricsPropType.isRequired,
   onLoad: PropTypes.func,
   src: PropTypes.string.isRequired
