@@ -2,11 +2,12 @@ import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import clockTime from 'clock-time';
 import glamorous from 'glamorous';
-import {KEY_PERIOD, KEY_SPACE} from 'keycode-js';
+import {KEY_SPACE} from 'keycode-js';
 import {Howl} from 'howler';
 import {size, triangle} from 'polished';
 
 import PlayBar from './play-bar';
+import lyricsPropType from '../util/lyrics-prop-type';
 import {PADDING_SMALL, PADDING_SMALLER} from '../variables';
 import {goodCharactersPattern} from '../pages/format';
 
@@ -67,10 +68,15 @@ function getWordColorFromProps(props) {
 }
 
 const Word = glamorous.span(props => ({
-  color: getWordColorFromProps(props)
+  color: getWordColorFromProps(props),
+  cursor: props.tagged && 'pointer'
 }));
 
-const specialCharactersPattern = /[,)]/;
+const specialCharactersPattern = /[,)?]/;
+
+function isHyphen(text) {
+  return text === '-';
+}
 
 class Player extends Component {
   constructor(props) {
@@ -92,7 +98,6 @@ class Player extends Component {
       dragging: false,
       duration: 0,
       loaded: false,
-      lyrics: props.lyrics,
       playing: false,
       selectedWord: null
     };
@@ -113,9 +118,6 @@ class Player extends Component {
         event.preventDefault();
         this.playPause();
         break;
-      case KEY_PERIOD:
-        this.tagWord();
-        break;
       default:
         break;
     }
@@ -127,6 +129,10 @@ class Player extends Component {
       loaded: true,
       duration: this.audio.duration()
     });
+
+    if (this.props.onLoad) {
+      this.props.onLoad();
+    }
   }
 
   onPause() {
@@ -161,6 +167,10 @@ class Player extends Component {
     );
   }
 
+  getCurrentTime() {
+    return this.audio.seek();
+  }
+
   playPause() {
     if (this.audio.playing()) {
       this.audio.pause();
@@ -175,40 +185,6 @@ class Player extends Component {
       this.setState({currentTime: this.audio.seek()});
       if (this.audio.playing()) {
         requestAnimationFrame(this.updateTime);
-      }
-    }
-  }
-
-  tagWord() {
-    for (
-      let verseIndex = 0;
-      verseIndex < this.state.lyrics.length;
-      verseIndex++
-    ) {
-      const verse = this.state.lyrics[verseIndex];
-      for (let lineIndex = 0; lineIndex < verse.length; lineIndex++) {
-        const line = verse[lineIndex];
-        for (let wordIndex = 0; wordIndex < line.length; wordIndex++) {
-          const word = line[wordIndex];
-          if (!Array.isArray(word) && goodCharactersPattern.test(word)) {
-            this.setState(prevState => ({
-              lyrics: [
-                ...prevState.lyrics.slice(0, verseIndex),
-                [
-                  ...verse.slice(0, lineIndex),
-                  [
-                    ...line.slice(0, wordIndex),
-                    [word, this.audio.seek()],
-                    ...line.slice(wordIndex + 1)
-                  ],
-                  ...verse.slice(lineIndex + 1)
-                ],
-                ...prevState.lyrics.slice(verseIndex + 1)
-              ]
-            }));
-            return;
-          }
-        }
       }
     }
   }
@@ -267,11 +243,14 @@ class Player extends Component {
       }
 
       let needsSpace =
-        goodCharactersPattern.test(text) || specialCharactersPattern.test(text);
+        !isHyphen(text) &&
+        (goodCharactersPattern.test(text) ||
+          specialCharactersPattern.test(text));
       const nextWord = line[index + 1];
-      if (nextWord) {
+      if (needsSpace && nextWord) {
         const nextText = Array.isArray(nextWord) ? nextWord[0] : nextWord;
-        needsSpace = !specialCharactersPattern.test(nextText);
+        needsSpace =
+          !isHyphen(nextText) && !specialCharactersPattern.test(nextText);
       }
 
       return (
@@ -297,7 +276,7 @@ class Player extends Component {
   renderLyrics() {
     return (
       <div>
-        {this.state.lyrics.map((verse, index) => (
+        {this.props.lyrics.map((verse, index) => (
           <Verse key={index.toString()}>{this.renderVerse(verse)}</Verse>
         ))}
       </div>
@@ -320,16 +299,8 @@ class Player extends Component {
 }
 
 Player.propTypes = {
-  lyrics: PropTypes.arrayOf(
-    PropTypes.arrayOf(
-      PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.arrayOf(
-          PropTypes.oneOfType([PropTypes.string, PropTypes.number])
-        )
-      ])
-    )
-  ).isRequired,
+  lyrics: lyricsPropType.isRequired,
+  onLoad: PropTypes.func,
   src: PropTypes.string.isRequired
 };
 

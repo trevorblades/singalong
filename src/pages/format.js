@@ -16,7 +16,7 @@ const TextArea = glamorous.textarea({
   resize: 'none'
 });
 
-const FormattedTextArea = glamorous(TextArea)({
+export const FormattedTextArea = glamorous(TextArea)({
   fontFamily: 'monospace',
   whiteSpace: 'pre'
 });
@@ -26,7 +26,11 @@ function focusAndSelect(event) {
   event.target.select();
 }
 
-const goodCharacters = /\w-'‘’*/;
+export function stringifyLyrics(lyrics) {
+  return JSON.stringify(lyrics, null, 2);
+}
+
+const goodCharacters = /\w'‘’*/;
 export const goodCharactersPattern = new RegExp(`[${goodCharacters.source}]+`);
 const wordsPattern = new RegExp(
   `${goodCharactersPattern.source}(?=(\\W|$))|[^${goodCharacters}\\s]`,
@@ -45,7 +49,7 @@ class Format extends Component {
 
   onTextChange(event) {
     const text = event.target.value;
-    const verses = text
+    const lyrics = text
       .trim()
       .split(/\n{2,}/)
       .map(verse => {
@@ -55,7 +59,7 @@ class Format extends Component {
       });
     this.setState({
       text,
-      formatted: JSON.stringify(verses, null, 2)
+      formatted: stringifyLyrics(lyrics)
     });
   }
 
