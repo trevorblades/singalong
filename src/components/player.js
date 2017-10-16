@@ -49,8 +49,13 @@ const Marker = glamorous.div({
   transform: 'translateX(-50%)'
 });
 
-const Verse = glamorous.div({});
-const Line = glamorous.div({});
+const Verse = glamorous.div({
+  marginBottom: '1.5em'
+});
+
+const Line = glamorous.div({
+  lineHeight: 1.5
+});
 
 function getWordColorFromProps(props) {
   if (props.active) {
