@@ -4,7 +4,7 @@ import clockTime from 'clock-time';
 import glamorous from 'glamorous';
 import {KEY_SPACE} from 'keycode-js';
 import {Howl} from 'howler';
-import {size, triangle} from 'polished';
+import {mix, size, triangle} from 'polished';
 
 import PlayBar from './play-bar';
 import lyricsPropType from '../util/lyrics-prop-type';
@@ -51,7 +51,8 @@ const Marker = glamorous.div({
 });
 
 const Verse = glamorous.div({
-  marginBottom: '1.5em'
+  marginBottom: '1.5em',
+  fontSize: 24
 });
 
 const Line = glamorous.div({
@@ -67,10 +68,23 @@ function getWordColorFromProps(props) {
   return 'gray';
 }
 
-const Word = glamorous.span(props => ({
-  color: getWordColorFromProps(props),
-  cursor: props.tagged && 'pointer'
-}));
+const Word = glamorous.span(props => {
+  const styles = {
+    color: getWordColorFromProps(props)
+  };
+
+  if (!props.tagged) {
+    return styles;
+  }
+
+  return {
+    ...styles,
+    cursor: 'pointer',
+    ':hover': {
+      color: mix(0.5, props.active ? 'red' : 'black', 'gray')
+    }
+  };
+});
 
 const specialCharactersPattern = /[,)?]/;
 
